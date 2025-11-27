@@ -5,9 +5,11 @@ import LoginModal from "./components/auth/LoginModal";
 import Image from "next/image";
 import Footer from "./components/Footer";
 import Header from "./components/Header";
+import RegisterModal from "./components/auth/RegisterModal";
 
 export default function HomePage() {
   const [openLogin, setOpenLogin] = useState(false);
+  const [openRegister, setOpenRegister] = useState(false);
 
   return (
     <>
@@ -30,17 +32,11 @@ export default function HomePage() {
 
           {/* Text Overlay */}
           <div className="absolute inset-0 flex flex-col justify-center items-center text-white drop-shadow-md px-4 text-center">
-            <p className="text-md sm:text-lg md:text-xl font-light">
-               🎌
-            </p>
+            <p className="text-md sm:text-lg md:text-xl font-light">🎌</p>
 
-            <h2 className="text-xl font-extrabold mb-2">
-              Cari Anime Apa?
-            </h2>
-            
-            <p className="text-sm font-light">
-               Login dulu yaa
-            </p>
+            <h2 className="text-xl font-extrabold mb-2">Cari Anime Apa?</h2>
+
+            <p className="text-sm font-light">Login dulu yaa</p>
 
             {/* CTA Button */}
             <div className="mt-8 flex justify-center">
@@ -57,8 +53,16 @@ export default function HomePage() {
 
       <Footer />
 
-      {/* MODAL */}
-      <LoginModal open={openLogin} onClose={() => setOpenLogin(false)} />
+      <LoginModal
+        open={openLogin}
+        onClose={() => setOpenLogin(false)}
+        onOpenRegister={() => setOpenRegister(true)}
+      />
+
+      <RegisterModal
+        open={openRegister}
+        onClose={() => setOpenRegister(false)}
+      />
     </>
   );
 }
