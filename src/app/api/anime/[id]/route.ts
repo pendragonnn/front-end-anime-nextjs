@@ -1,6 +1,20 @@
 import { NextResponse } from "next/server";
 import { API_BASE_URL } from "@/lib/constants";
 
+export async function GET(req: Request, { params }: { params: { id: string }}) {
+  const token = req.headers.get("cookie")?.match(/accessToken=([^;]+)/)?.[1];
+  const { id } = await params;
+
+  const res = await fetch(`${API_BASE_URL}/api/anime/${id}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  const data = await res.json();
+  return NextResponse.json(data, { status: res.status });
+}
+
 // PATCH → update anime
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   const { id } = await params;
