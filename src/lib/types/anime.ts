@@ -36,6 +36,14 @@ export interface ApiResponse<T> {
   filterQuery: FilterQuery | null;
 }
 
+export interface AnimeFormModalProps {
+  open: boolean;
+  mode: "create" | "edit";
+  initialData?: Anime | null;
+  onClose: () => void;
+  onSuccess: () => void;
+}
+
 export type AnimeListResponse = ApiResponse<Anime[]>;
 
 export type AnimeDetailResponse = ApiResponse<Anime>;

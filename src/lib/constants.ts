@@ -1,1 +1,35 @@
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+
+export const GENRES = [
+  "ACTION",
+  "ADVENTURE",
+  "COMEDY",
+  "CRIME",
+  "DEMON",
+  "DRAMA",
+  "ECCHI",
+  "FANTASY",
+  "GAME",
+  "HENTAI",
+  "HISTORICAL",
+  "HORROR",
+  "JUMP",
+  "KIDS",
+  "MAGIC",
+  "MUSIC",
+  "MYSTIC",
+  "PSYCHO",
+  "ROMANCE",
+  "SCHOOL",
+  "SCIENCE",
+  "SLICE",
+  "SPIRIT",
+  "SPORT",
+  "SUSPENSE",
+  "SUPERNATURAL",
+  "THRILLER",
+  "VIOLENCE",
+  "WEBTOON",
+] as const;
+
+export type Genre = (typeof GENRES)[number];
