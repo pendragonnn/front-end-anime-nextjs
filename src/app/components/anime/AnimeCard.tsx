@@ -22,6 +22,7 @@ export default function AnimeCard({ anime, onEdit, onDelete }: AnimeCardProps) {
           src="https://i.pinimg.com/1200x/6a/ef/73/6aef7395be0a545e797998b6d6baddd6.jpg"
           alt="cover"
           fill
+          loading="eager"
           className="object-cover"
         />
       </div>

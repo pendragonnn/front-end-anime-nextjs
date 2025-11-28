@@ -10,13 +10,13 @@ interface AnimeListProps {
 }
 
 export default function AnimeList({ items, onEdit, onDelete }: AnimeListProps) {
-  if (items.length === 0) {
+  if (items?.length === 0) {
     return <p className="text-gray-500 col-span-full">Tidak ada anime.</p>;
   }
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-5 sm:grid-cols-3 gap-5 mt-6">
-      {items.map((item) => (
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5 mt-6">
+      {items?.map((item) => (
         <AnimeCard
           key={item.id}
           anime={item}
