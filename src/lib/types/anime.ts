@@ -44,6 +44,12 @@ export interface AnimeFormModalProps {
   onSuccess: () => void;
 }
 
+export interface AnimeCardProps {
+  anime: Anime;
+  onEdit: (anime: Anime) => void;
+  onDelete: (id: string) => void;
+}
+
 export type AnimeListResponse = ApiResponse<Anime[]>;
 
 export type AnimeDetailResponse = ApiResponse<Anime>;

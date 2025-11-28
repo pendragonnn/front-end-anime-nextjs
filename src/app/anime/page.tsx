@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import type { Anime, Pagination } from "@/lib/types/anime";
 import AnimeFormModal from "../components/anime/AnimeFormModal";
-import Image from "next/image";
+import AnimeList from "../components/anime/AnimeList";
 
 export default function AnimePage() {
   const [anime, setAnime] = useState<Anime[]>([]);
@@ -21,7 +21,7 @@ export default function AnimePage() {
   const [openForm, setOpenForm] = useState(false);
   const [editData, setEditData] = useState<Anime | null>(null);
 
-  // 🔁 Debounce search (TIDAK bikin page re-render total)
+  // ------ Debounce search ------
   useEffect(() => {
     const t = setTimeout(() => {
       setDebouncedSearch(search);
@@ -31,9 +31,8 @@ export default function AnimePage() {
     return () => clearTimeout(t);
   }, [search]);
 
-  // FETCH anime
+  // ------ Fetch anime ------
   const loadAnime = useCallback(async () => {
-    // kalau pagination berubah → loading page
     setLoadingPage(true);
 
     try {
@@ -43,7 +42,6 @@ export default function AnimePage() {
       );
 
       const data = await res.json();
-      console.log("anime", data);
 
       setAnime(data.data);
       setPagination(data.pagination);
@@ -56,18 +54,34 @@ export default function AnimePage() {
   }, [page, debouncedSearch]);
 
   useEffect(() => {
-    if (debouncedSearch) {
-      setLoadingSearch(true);
-    }
+    if (debouncedSearch) setLoadingSearch(true);
     loadAnime();
   }, [loadAnime]);
+
+  // ------ Delete anime ------
+  const handleDelete = async (id: string) => {
+    if (!confirm("Yakin hapus anime ini, Mas?")) return;
+
+    const res = await fetch(`/api/anime/${id}`, {
+      method: "DELETE",
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.error || "Gagal menghapus anime");
+      return;
+    }
+
+    loadAnime();
+  };
 
   if (loadingPage && anime.length === 0)
     return <p className="text-center pt-10 text-gray-600">Loading anime...</p>;
 
   return (
     <div className="w-full mx-auto pt-5 px-4">
-      {/* Header + search + tambah */}
+      {/* Header + Search + Add */}
       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 mb-6">
         <h1 className="text-2xl font-bold">Anime List</h1>
 
@@ -86,7 +100,7 @@ export default function AnimePage() {
           )}
         </div>
 
-        {/* TAMBAH */}
+        {/* BUTTON TAMBAH */}
         <button
           onClick={() => {
             setEditData(null);
@@ -99,74 +113,16 @@ export default function AnimePage() {
       </div>
 
       {/* LIST ANIME */}
-      <div className="grid grid-cols-1 xl:grid-cols-5 sm:grid-cols-3 gap-5 mt-6">
-        {anime?.length === 0 && (
-          <p className="text-gray-500 col-span-full">Tidak ada anime.</p>
-        )}
+      <AnimeList
+        items={anime}
+        onEdit={(item) => {
+          setEditData(item);
+          setOpenForm(true);
+        }}
+        onDelete={handleDelete}
+      />
 
-        {anime?.map((item) => (
-          <div
-            key={item.id}
-            className="bg-white border border-blue-200/50 rounded-xl shadow-sm hover:shadow-md transition cursor-pointer flex flex-col overflow-hidden"
-          >
-            <div
-              className="h-40 w-full relative"
-              onClick={() => (window.location.href = `/anime/${item.id}`)}
-            >
-              <Image
-                src="https://i.pinimg.com/1200x/6a/ef/73/6aef7395be0a545e797998b6d6baddd6.jpg"
-                alt="cover"
-                fill
-                className="object-cover"
-              />
-            </div>
-
-            <div
-              className="p-4 flex flex-col justify-between flex-1"
-              onClick={() => (window.location.href = `/anime/${item.id}`)}
-            >
-              <h2 className="text-lg font-semibold line-clamp-1">
-                {item.title}
-              </h2>
-
-              <p className="text-sm text-gray-600 line-clamp-2 mt-1">
-                {item.synopsis}
-              </p>
-
-              <p className="text-xs mt-2 text-blue-600">
-                {item.genres.join(", ")}
-              </p>
-            </div>
-
-            {/* Action */}
-            <div className="flex justify-between px-4 pb-4 gap-2">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setEditData(item);
-                  setOpenForm(true);
-                }}
-                className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white py-1 rounded text-sm"
-              >
-                Edit
-              </button>
-
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  // Mas, di sini delete-nya nanti
-                  console.log("delete:", item.id);
-                }}
-                className="flex-1 bg-red-500 hover:bg-red-600 text-white py-1 rounded text-sm"
-              >
-                Hapus
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Pagination */}
+      {/* PAGINATION */}
       {pagination && (
         <div className="flex justify-between mt-8">
           <button
@@ -191,6 +147,7 @@ export default function AnimePage() {
         </div>
       )}
 
+      {/* MODAL CREATE / EDIT */}
       <AnimeFormModal
         open={openForm}
         initialData={editData}
