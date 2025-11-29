@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { Pagination, type Anime } from "@/lib/types/anime";
-import AnimeFormModal from "../components/anime/AnimeFormModal";
-import AnimeList from "../components/anime/AnimeList";
+import { Pagination, type Anime } from "@/models/anime.type";
+import AnimeFormModal from "@/components/anime/AnimeFormModal";
+import AnimeList from "@/components/anime/AnimeList";
 
 export default function AnimePage() {
   const [anime, setAnime] = useState<Anime[]>([]);

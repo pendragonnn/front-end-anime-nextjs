@@ -14,3 +14,10 @@ export interface LoginResponse {
     user: User;
   };
 }
+
+export type BackenErrorResponse = {
+  message?: string;
+  error?: string;
+  statusCode?: number;
+};
+

@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import type { AnimeFormModalProps } from "@/lib/types/anime";
-import { GENRES } from "@/lib/constants";
+import type { AnimeFormModalProps } from "@/models/anime.type";
+import { GENRES } from "@/constant/constants";
 
 export default function AnimeFormModal({
   open,

@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import type { Anime } from "@/lib/types/anime";
+import type { Anime } from "@/models/anime.type";
 
 interface AnimeCardProps {
   anime: Anime;

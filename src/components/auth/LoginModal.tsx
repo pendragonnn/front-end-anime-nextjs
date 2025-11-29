@@ -1,17 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
+import { loginAction } from "@/services/auth/auth.action";
+import { useRouter } from "next/navigation";
 
 interface LoginModalProps {
   open: boolean;
   onClose: () => void;
-  onOpenRegister: () => void; 
+  onOpenRegister: () => void;
 }
 
-export default function LoginModal({ open, onClose, onOpenRegister }: LoginModalProps) {
+export default function LoginModal({
+  open,
+  onClose,
+  onOpenRegister,
+}: LoginModalProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
   if (!open) return null;
 
@@ -24,41 +32,36 @@ export default function LoginModal({ open, onClose, onOpenRegister }: LoginModal
     if (!emailRegex.test(email)) {
       return "Format email tidak valid.";
     }
-
     return null;
   };
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
 
-    const validationError = validateForm();
-    if (validationError) {
-      setError(validationError);
+    const validationErr = validateForm();
+    if (validationErr) {
+      setError(validationErr);
       return;
     }
 
-    const res = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
+    startTransition(async () => {
+      const result = await loginAction(email, password);
 
-    if (res.ok) {
-      window.location.href = "/anime";
-    } else {
-      const result = await res.json();
-      setError(result?.error || "Login gagal, silakan cek kembali.");
-    }
+      if (!result || result.error) {
+        setError(result?.error || "Login gagal.");
+        return;
+      }
+
+      onClose();
+      router.push("/anime");
+    });
   };
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn">
-
       <div className="relative bg-white/90 backdrop-blur-xl rounded-2xl p-8 w-full max-w-sm shadow-xl border border-blue-200 animate-scaleIn">
-
-        {/* Close Button */}
         <button
-          className="absolute right-4 top-4 text-gray-500 hover:text-gray-700 transition"
+          className="absolute right-4 top-4 text-gray-500 hover:text-gray-700"
           onClick={onClose}
         >
           ✕
@@ -75,46 +78,47 @@ export default function LoginModal({ open, onClose, onOpenRegister }: LoginModal
         )}
 
         <form onSubmit={handleLogin} className="flex flex-col gap-4">
-
-          {/* Email */}
           <div>
             <label className="text-sm text-gray-700 font-medium">Email</label>
             <input
               type="email"
-              className="border mt-1 w-full p-2 rounded focus:ring-2 focus:ring-blue-400 outline-none"
+              className="border mt-1 w-full p-2 rounded"
               placeholder="email@example.com"
               value={email}
+              disabled={isPending}
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
 
-          {/* Password */}
           <div>
-            <label className="text-sm text-gray-700 font-medium">Password</label>
+            <label className="text-sm text-gray-700 font-medium">
+              Password
+            </label>
             <input
               type="password"
-              className="border mt-1 w-full p-2 rounded focus:ring-2 focus:ring-blue-400 outline-none"
+              className="border mt-1 w-full p-2 rounded"
               placeholder="••••••••"
               value={password}
+              disabled={isPending}
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
 
           <button
             type="submit"
-            className="bg-blue-500 hover:bg-blue-600 transition text-white p-2 rounded-lg font-semibold shadow-md active:scale-95"
+            disabled={isPending}
+            className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-lg font-semibold shadow-md active:scale-95 disabled:opacity-50"
           >
-            Masuk
+            {isPending ? "Memproses..." : "Masuk"}
           </button>
         </form>
 
-        {/* Register Trigger */}
         <p className="text-center mt-4 text-sm text-gray-600">
           Belum punya akun?{" "}
           <button
             onClick={() => {
-              onClose();       
-              onOpenRegister();  
+              onClose();
+              onOpenRegister();
             }}
             className="text-blue-600 font-medium hover:underline"
           >
@@ -122,24 +126,6 @@ export default function LoginModal({ open, onClose, onOpenRegister }: LoginModal
           </button>
         </p>
       </div>
-
-      {/* Animations */}
-      <style jsx>{`
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        @keyframes scaleIn {
-          from { transform: scale(0.95); opacity: 0; }
-          to { transform: scale(1); opacity: 1; }
-        }
-        .animate-fadeIn {
-          animation: fadeIn 0.25s ease-out;
-        }
-        .animate-scaleIn {
-          animation: scaleIn 0.25s ease-out;
-        }
-      `}</style>
     </div>
   );
 }
