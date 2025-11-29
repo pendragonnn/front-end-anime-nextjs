@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Image from "next/image";
 import AnimeFormModal from "@/app/components/anime/AnimeFormModal";
-import type { Anime } from "@/lib/types/anime";
+import type { Anime } from "@/models/anime.type";
 
 export default function AnimeDetailPage() {
   const { id } = useParams();
