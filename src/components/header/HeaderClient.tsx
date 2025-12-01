@@ -1,6 +1,6 @@
 "use client";
 
-import { logoutAction } from "@/services/auth/auth.action";
+import { logoutAction } from "@/services/auth/auth.service";
 
 export default function HeaderClient({ loggedIn }: { loggedIn: boolean }) {
   const handleLogout = async () => {

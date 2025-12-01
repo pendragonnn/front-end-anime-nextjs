@@ -1,7 +1,7 @@
 "use client";
 
 import AnimeCard from "./AnimeCard";
-import type { Anime } from "@/models/anime.type";
+import type { Anime } from "@/models/anime.model";
 
 interface AnimeListProps {
   items: Anime[];

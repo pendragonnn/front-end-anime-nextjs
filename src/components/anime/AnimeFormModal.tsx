@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import type { AnimeFormModalProps } from "@/models/anime.type";
+import type { AnimeFormModalProps } from "@/models/anime.model";
 import { GENRES } from "@/constant/constants";
 
 export default function AnimeFormModal({
@@ -9,56 +9,53 @@ export default function AnimeFormModal({
   mode,
   initialData,
   onClose,
-  onSuccess
+  onSubmit, // 🔥 now using parent mutation handler
 }: AnimeFormModalProps) {
   const [title, setTitle] = useState("");
   const [synopsis, setSynopsis] = useState("");
-
-  // GENRE PICKER
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
-  const [genreCandidate, setGenreCandidate] = useState(""); // dropdown selection
+  const [genreCandidate, setGenreCandidate] = useState("");
 
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Prefill EDIT
+  // Prefill form saat EDIT
   useEffect(() => {
+    if (!open) return;
+
     if (initialData) {
       setTitle(initialData.title);
       setSynopsis(initialData.synopsis || "");
-      setSelectedGenres(initialData.genres);
+      setSelectedGenres(initialData.genres ?? []);
     } else {
       setTitle("");
       setSynopsis("");
       setSelectedGenres([]);
     }
+
+    setError("");
   }, [initialData, open]);
 
   if (!open) return null;
 
+  // Handle genre add
   const addGenre = () => {
     if (!genreCandidate) return;
-
     if (!selectedGenres.includes(genreCandidate)) {
-      setSelectedGenres([...selectedGenres, genreCandidate]);
+      setSelectedGenres((prev) => [...prev, genreCandidate]);
     }
-
     setGenreCandidate("");
   };
 
   const removeGenre = (g: string) => {
-    setSelectedGenres(selectedGenres.filter((x) => x !== g));
+    setSelectedGenres((prev) => prev.filter((x) => x !== g));
   };
 
-  // SUBMIT
-  const handleSubmit = async (e: React.FormEvent) => {
+  // SUBMIT HANDLER (delegasi ke parent)
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setError("");
 
     if (selectedGenres.length === 0) {
       setError("Minimal pilih 1 genre.");
-      setLoading(false);
       return;
     }
 
@@ -68,40 +65,12 @@ export default function AnimeFormModal({
       genres: selectedGenres,
     };
 
-    try {
-      const res = await fetch(
-        mode === "create"
-          ? "/api/anime"
-          : `/api/anime/${initialData?.id}`,
-        {
-          method: mode === "create" ? "POST" : "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
-        }
-      );
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.error || "Gagal menyimpan anime");
-        return;
-      }
-
-      onSuccess();
-      onClose();
-    } catch (err) {
-      console.error(err);
-      setError("Terjadi kesalahan pada server");
-    } finally {
-      setLoading(false);
-    }
+    onSubmit(payload); // 🔥 kirim ke mutation dari parent
   };
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-md">
+      <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-md animate-fadeIn">
 
         <h2 className="text-xl font-bold mb-4 text-blue-600">
           {mode === "create" ? "Tambah Anime" : "Edit Anime"}
@@ -135,7 +104,7 @@ export default function AnimeFormModal({
             required
           />
 
-          {/* GENRE SELECTOR */}
+          {/* Genre Picker */}
           <div className="flex gap-2">
             <select
               className="border p-2 rounded flex-1"
@@ -159,7 +128,7 @@ export default function AnimeFormModal({
             </button>
           </div>
 
-          {/* SELECTED GENRES */}
+          {/* Selected Genres */}
           <div className="flex flex-wrap gap-2 mt-1">
             {selectedGenres.map((g) => (
               <span
@@ -178,19 +147,15 @@ export default function AnimeFormModal({
             ))}
           </div>
 
-          {/* BUTTON SUBMIT */}
+          {/* Submit button */}
           <button
-            disabled={loading}
-            className="bg-blue-600 text-white p-2 rounded shadow hover:bg-blue-700 disabled:bg-blue-300"
+            className="bg-blue-600 text-white p-2 rounded shadow hover:bg-blue-700"
           >
-            {loading
-              ? "Menyimpan..."
-              : mode === "create"
-              ? "Tambah"
-              : "Simpan Perubahan"}
+            {mode === "create" ? "Tambah" : "Simpan Perubahan"}
           </button>
         </form>
 
+        {/* Cancel */}
         <button
           className="mt-3 text-sm text-gray-600 hover:underline"
           onClick={onClose}

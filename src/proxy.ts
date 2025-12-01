@@ -3,9 +3,10 @@ import type { NextRequest } from "next/server";
 
 export function proxy(request: NextRequest) {
   const accessToken = request.cookies.get("access_token")?.value;
+  const refreshToken = request.cookies.get("refresh_token")?.value;
 
-  // Jika tidak ada token -> redirect ke landing page
-  if (!accessToken) {
+  if (!accessToken && !refreshToken) {
+    // Redirect ke halaman login/landing page
     return NextResponse.redirect(new URL("/", request.url));
   }
 

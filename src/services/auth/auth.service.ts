@@ -1,13 +1,13 @@
 "use server";
 
-import { axiosInstance } from "@/utils/axios";
+import { axiosInstance } from "@/utils/axios.utils";
 import {
   setAuthCookies,
   clearAuthCookies,
   getRefreshToken,
-} from "@/utils/cookies";
+} from "@/utils/cookies.utils";
 import { isAxiosError } from "@/utils/error.utils";
-import type { BackendErrorResponse } from "@/models/api-eror.type";
+import type { BackendErrorResponse } from "@/models/api-error.model";
 
 /* ============================
    1. LOGIN
@@ -50,9 +50,7 @@ export async function registerAction(
       password,
     });
 
-    const { accessToken, refreshToken, user } = res.data.data;
-
-    await setAuthCookies(accessToken, refreshToken);
+    const { user } = res.data.data;
 
     return { success: true, user };
   } catch (err: unknown) {
@@ -97,10 +95,12 @@ export async function refreshAccessTokenAction() {
   } catch (err: unknown) {
     if (isAxiosError(err)) {
       const data = err.response?.data as BackendErrorResponse;
+      await clearAuthCookies(); 
       return {
         error: data?.message || "Gagal refresh token.",
       };
-    }
+    } // Hapus cookie juga untuk error non-Axios
+    await clearAuthCookies(); 
     return { error: "Gagal refresh token (error non-Axios)." };
   }
 }
