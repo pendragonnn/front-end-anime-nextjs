@@ -5,14 +5,14 @@ import { cookies } from "next/headers";
 export async function setAuthCookies(accessToken: string, refreshToken: string) {
   const cookieStore = await cookies();
 
-  await cookieStore.set("access_token", accessToken, {
+  cookieStore.set("access_token", accessToken, {
     httpOnly: true,
     secure: true,
     sameSite: "strict",
     path: "/",
   });
 
-  await cookieStore.set("refresh_token", refreshToken, {
+  cookieStore.set("refresh_token", refreshToken, {
     httpOnly: true,
     secure: true,
     sameSite: "strict",
@@ -22,8 +22,8 @@ export async function setAuthCookies(accessToken: string, refreshToken: string) 
 
 export async function clearAuthCookies() {
   const cookieStore = await cookies();
-  await cookieStore.delete("access_token");
-  await cookieStore.delete("refresh_token");
+  cookieStore.delete("access_token");
+  cookieStore.delete("refresh_token");
 }
 
 export async function getAccessToken() {

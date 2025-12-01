@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { registerAction } from "@/services/auth/auth.action";
+import { registerAction } from "@/services/auth/auth.service";
 
 interface RegisterModalProps {
   open: boolean;

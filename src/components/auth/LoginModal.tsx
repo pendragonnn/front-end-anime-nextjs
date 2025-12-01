@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { loginAction } from "@/services/auth/auth.action";
+import { loginAction } from "@/services/auth/auth.service";
 import { useRouter } from "next/navigation";
 
 interface LoginModalProps {
