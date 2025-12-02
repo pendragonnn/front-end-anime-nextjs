@@ -54,17 +54,14 @@ export async function getAnimeListAction(
 /* =========================================
    2. GET ANIME BY ID
 ========================================= */
-export async function getAnimeByIdAction(
-  animeId: string
-): Promise<Anime | null> {
+export async function getAnimeByIdAction(id: string) {
   return withAuth(async (token) => {
-    const res = await axiosInstance.get(`/api/anime/${animeId}`, {
+    const res = await axiosInstance.get(`/api/anime/${id}`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
-
-    return res.data?.data ?? null;
+    return res.data.data;
   });
 }
 

@@ -93,13 +93,16 @@ export async function refreshAccessTokenAction() {
 
     return { success: true, accessToken };
   } catch (err: unknown) {
+    
     if (isAxiosError(err)) {
+      
       const data = err.response?.data as BackendErrorResponse;
       await clearAuthCookies(); 
       return {
         error: data?.message || "Gagal refresh token.",
       };
-    } // Hapus cookie juga untuk error non-Axios
+    }
+    
     await clearAuthCookies(); 
     return { error: "Gagal refresh token (error non-Axios)." };
   }
