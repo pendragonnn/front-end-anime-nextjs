@@ -24,21 +24,22 @@ import type {
   AnimeListResponse,
 } from "@/models/anime.model";
 
+import DeleteDialog from "@/components/anime/list/DeleteDialog";
+
 export default function AnimeListSection({
   initialQuery,
 }: {
   initialQuery: AnimeQueryParams;
 }) {
   const queryClient = useQueryClient();
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   // Filter state
   const [page, setPage] = useState(initialQuery.page ?? 1);
   const [limit] = useState(initialQuery.limit ?? 10);
   const [search, setSearch] = useState(initialQuery.search ?? "");
   const [sortBy, setSortBy] = useState(initialQuery.sortBy ?? "createdAt");
-  const [sort, setSort] = useState<"asc" | "desc">(
-    initialQuery.sort ?? "desc"
-  );
+  const [sort, setSort] = useState<"asc" | "desc">(initialQuery.sort ?? "desc");
 
   const debouncedSearch = useDebounce(search, 400);
 
@@ -103,8 +104,7 @@ export default function AnimeListSection({
   };
 
   return (
-    <div className="max-w-6xl mx-auto py-8 px-4">
-
+    <div className="max-w-7xl mx-auto py-8 px-4">
       <AnimeToolbar
         search={search}
         onSearch={(v) => {
@@ -122,18 +122,6 @@ export default function AnimeListSection({
         }}
       />
 
-      {/* <GenreFilter
-        selected={selectedGenres}
-        onToggle={(g) => {
-          setPage(1);
-          setSelectedGenres((prev) =>
-            prev.includes(g)
-              ? prev.filter((x) => x !== g)
-              : [...prev, g]
-          );
-        }}
-      /> */}
-
       {!isLoading && (
         <AnimeList
           items={items}
@@ -142,11 +130,7 @@ export default function AnimeListSection({
             setEditingAnime(anime);
             setOpenModal(true);
           }}
-          onDelete={(id) => {
-            if (confirm("Yakin ingin menghapus anime?")) {
-              deleteMutation.mutate(id);
-            }
-          }}
+          onDelete={(id) => setDeleteId(id)}
         />
       )}
 
@@ -167,6 +151,18 @@ export default function AnimeListSection({
         initialData={editingAnime || undefined}
         onClose={() => setOpenModal(false)}
         onSubmit={handleModalSubmit}
+      />
+
+      <DeleteDialog
+        open={!!deleteId}
+        onClose={() => setDeleteId(null)}
+        onConfirm={() => {
+          if (!deleteId) return;
+          deleteMutation.mutate(deleteId);
+          setDeleteId(null);
+        }}
+        title="Hapus Anime Ini?"
+        description="Anime yang dihapus tidak bisa dikembalikan."
       />
     </div>
   );

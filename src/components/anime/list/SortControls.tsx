@@ -1,5 +1,14 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue
+} from "@/components/ui/select";
+
 interface Props {
   sortBy: string;
   sort: "asc" | "desc";
@@ -16,31 +25,48 @@ export default function SortControls({
   onCreate,
 }: Props) {
   return (
-    <div className="flex gap-2">
-      <select
-        className="border p-2 rounded"
-        value={sortBy}
-        onChange={(e) => onSortByChange(e.target.value)}
-      >
-        <option value="createdAt">Tanggal dibuat</option>
-        <option value="title">Judul</option>
-      </select>
+    <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
 
-      <select
-        className="border p-2 rounded"
-        value={sort}
-        onChange={(e) => onSortChange(e.target.value as "asc" | "desc")}
-      >
-        <option value="desc">Terbaru / Z-A</option>
-        <option value="asc">Terlama / A-Z</option>
-      </select>
+      <Select value={sortBy} onValueChange={onSortByChange}>
+        <SelectTrigger
+          className="
+            w-[180px] bg-white/5 border-white/20 text-white rounded-xl
+            backdrop-blur-sm focus:ring-blue-500
+          "
+        >
+          <SelectValue placeholder="Sort by" />
+        </SelectTrigger>
+        <SelectContent className="bg-black text-white border border-white/20">
+          <SelectItem value="createdAt">Tanggal dibuat</SelectItem>
+          <SelectItem value="title">Judul</SelectItem>
+        </SelectContent>
+      </Select>
 
-      <button
+      <Select value={sort} onValueChange={onSortChange}>
+        <SelectTrigger
+          className="
+            w-[180px] bg-white/5 border-white/20 text-white rounded-xl
+            backdrop-blur-sm focus:ring-blue-500
+          "
+        >
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent className="bg-black text-white border border-white/20">
+          <SelectItem value="desc">Terbaru / Z-A</SelectItem>
+          <SelectItem value="asc">Terlama / A-Z</SelectItem>
+        </SelectContent>
+      </Select>
+
+      <Button
         onClick={onCreate}
-        className="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 active:scale-95 transition"
+        className="
+          bg-blue-600 hover:bg-blue-700 
+          text-white px-5 py-2 rounded-xl shadow 
+          active:scale-95 whitespace-nowrap
+        "
       >
         + Tambah Anime
-      </button>
+      </Button>
     </div>
   );
 }

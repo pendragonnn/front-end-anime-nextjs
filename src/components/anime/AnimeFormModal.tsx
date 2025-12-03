@@ -4,12 +4,32 @@ import { useState, useEffect } from "react";
 import type { AnimeFormModalProps } from "@/models/anime.model";
 import { GENRES } from "@/constant/constants";
 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { X } from "lucide-react";
+
 export default function AnimeFormModal({
   open,
   mode,
   initialData,
   onClose,
-  onSubmit, // 🔥 now using parent mutation handler
+  onSubmit,
 }: AnimeFormModalProps) {
   const [title, setTitle] = useState("");
   const [synopsis, setSynopsis] = useState("");
@@ -18,7 +38,7 @@ export default function AnimeFormModal({
 
   const [error, setError] = useState("");
 
-  // Prefill form saat EDIT
+  // Prefill form saat edit
   useEffect(() => {
     if (!open) return;
 
@@ -35,10 +55,7 @@ export default function AnimeFormModal({
     setError("");
   }, [initialData, open]);
 
-  if (!open) return null;
-
-  // Handle genre add
-  const addGenre = () => {
+  const handleAddGenre = () => {
     if (!genreCandidate) return;
     if (!selectedGenres.includes(genreCandidate)) {
       setSelectedGenres((prev) => [...prev, genreCandidate]);
@@ -46,13 +63,13 @@ export default function AnimeFormModal({
     setGenreCandidate("");
   };
 
-  const removeGenre = (g: string) => {
-    setSelectedGenres((prev) => prev.filter((x) => x !== g));
-  };
-
-  // SUBMIT HANDLER (delegasi ke parent)
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!title.trim() || !synopsis.trim()) {
+      setError("Harap isi semua field.");
+      return;
+    }
 
     if (selectedGenres.length === 0) {
       setError("Minimal pilih 1 genre.");
@@ -65,104 +82,114 @@ export default function AnimeFormModal({
       genres: selectedGenres,
     };
 
-    onSubmit(payload); // 🔥 kirim ke mutation dari parent
+    onSubmit(payload);
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-md animate-fadeIn">
-
-        <h2 className="text-xl font-bold mb-4 text-blue-600">
-          {mode === "create" ? "Tambah Anime" : "Edit Anime"}
-        </h2>
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="bg-black/90 backdrop-blur-xl border border-white/10 text-white max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="text-2xl font-bold tracking-wide text-blue-400">
+            {mode === "create" ? "Tambah Anime" : "Edit Anime"}
+          </DialogTitle>
+        </DialogHeader>
 
         {error && (
-          <div className="bg-red-100 border border-red-300 text-red-700 p-2 rounded mb-3">
+          <div className="bg-red-500/20 border border-red-500 text-red-300 p-2 rounded-md text-sm mb-2">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5 mt-2">
+          {/* Judul */}
+          <div>
+            <label className="text-sm mb-1 block">Judul Anime</label>
+            <Input
+              className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+              placeholder="Masukkan judul anime"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+          </div>
 
-          {/* Title */}
-          <input
-            type="text"
-            placeholder="Judul Anime"
-            className="border p-2 rounded"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            required
-          />
-
-          {/* Synopsis */}
-          <textarea
-            placeholder="Sinopsis"
-            className="border p-2 rounded"
-            rows={3}
-            value={synopsis}
-            onChange={(e) => setSynopsis(e.target.value)}
-            required
-          />
+          {/* Sinopsis */}
+          <div>
+            <label className="text-sm mb-1 block">Sinopsis</label>
+            <Textarea
+              className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+              placeholder="Tuliskan sinopsis anime"
+              rows={4}
+              value={synopsis}
+              onChange={(e) => setSynopsis(e.target.value)}
+            />
+          </div>
 
           {/* Genre Picker */}
-          <div className="flex gap-2">
-            <select
-              className="border p-2 rounded flex-1"
-              value={genreCandidate}
-              onChange={(e) => setGenreCandidate(e.target.value)}
-            >
-              <option value="">Pilih Genre</option>
-              {GENRES.map((g) => (
-                <option key={g} value={g}>
-                  {g}
-                </option>
-              ))}
-            </select>
+          <div className="flex flex-col gap-2">
+            <label className="text-sm">Pilih Genre</label>
 
-            <button
-              type="button"
-              onClick={addGenre}
-              className="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 active:scale-95 transition"
-            >
-              Tambah
-            </button>
-          </div>
+            <div className="flex gap-2">
+              <Select value={genreCandidate} onValueChange={setGenreCandidate}>
+                <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                  <SelectValue placeholder="Pilih genre" />
+                </SelectTrigger>
+                <SelectContent className="bg-black/90 text-white border-white/10">
+                  {GENRES.map((g) => (
+                    <SelectItem key={g} value={g} className="text-white">
+                      {g}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
-          {/* Selected Genres */}
-          <div className="flex flex-wrap gap-2 mt-1">
-            {selectedGenres.map((g) => (
-              <span
-                key={g}
-                className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full flex items-center gap-2"
+              <Button
+                type="button"
+                onClick={handleAddGenre}
+                className="bg-blue-600 hover:bg-blue-700"
               >
-                {g}
-                <button
-                  type="button"
-                  onClick={() => removeGenre(g)}
-                  className="text-red-500 hover:text-red-700 font-bold"
+                Tambah
+              </Button>
+            </div>
+
+            {/* Selected Genres */}
+            <div className="flex flex-wrap gap-2 mt-1">
+              {selectedGenres.map((g) => (
+                <div
+                  key={g}
+                  className="flex items-center gap-2 bg-blue-600/30 border border-blue-600 text-blue-300 px-3 py-1 rounded-full"
                 >
-                  ✕
-                </button>
-              </span>
-            ))}
+                  <span className="text-sm">{g}</span>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setSelectedGenres((prev) => prev.filter((x) => x !== g))
+                    }
+                    className="text-blue-300 hover:text-red-400 transition"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
 
-          {/* Submit button */}
-          <button
-            className="bg-blue-600 text-white p-2 rounded shadow hover:bg-blue-700"
-          >
-            {mode === "create" ? "Tambah" : "Simpan Perubahan"}
-          </button>
-        </form>
+          <DialogFooter className="mt-4 flex justify-end gap-3">
+            <Button
+              variant="outline"
+              className="border-white/30 text-white"
+              type="button"
+              onClick={onClose}
+            >
+              Batal
+            </Button>
 
-        {/* Cancel */}
-        <button
-          className="mt-3 text-sm text-gray-600 hover:underline"
-          onClick={onClose}
-        >
-          Batal
-        </button>
-      </div>
-    </div>
+            <Button className="bg-blue-600 hover:bg-blue-700" type="submit">
+              {mode === "create" ? "Tambah" : "Simpan Perubahan"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }

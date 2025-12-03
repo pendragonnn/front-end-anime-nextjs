@@ -1,23 +1,76 @@
 "use client";
 
+import { useState } from "react";
 import { logoutAction } from "@/services/auth/auth.service";
+import { Button } from "@/components/ui/button";
+import LoginModal from "../auth/LoginModal";
+import RegisterModal from "../auth/RegisterModal";
 
 export default function HeaderClient({ loggedIn }: { loggedIn: boolean }) {
+  const [loginOpen, setLoginOpen] = useState(false);
+  const [registerOpen, setRegisterOpen] = useState(false);
+
   const handleLogout = async () => {
     await logoutAction();
     window.location.href = "/";
   };
 
-  if (!loggedIn) return <div className="w-20"></div>;
-
   return (
-    <div className="w-20 flex justify-end">
-      <button
-        onClick={handleLogout}
-        className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 text-sm rounded-lg shadow active:scale-95 transition"
-      >
-        Logout
-      </button>
-    </div>
+    <>
+      {/* ---------------- HEADER ---------------- */}
+      <header className="sticky top-0 z-50 bg-black text-white ">
+        <div className="h-18 flex items-center justify-between px-6">
+
+          {/* Left spacer */}
+          <div className="w-20"></div>
+
+          {/* CENTER TITLE */}
+          <h1 className="text-3xl font-bold tracking-widest select-none">
+            OHAYŌ
+          </h1>
+
+          {/* RIGHT ACTIONS */}
+          <div className="w-20 flex justify-end">
+            {loggedIn ? (
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleLogout}
+              >
+                Logout
+              </Button>
+            ) : (
+              <Button
+                variant="secondary"
+                size="sm"
+                className="bg-white/10 text-white hover:bg-white/20"
+                onClick={() => setLoginOpen(true)}
+              >
+                Login
+              </Button>
+            )}
+          </div>
+        </div>
+      </header>
+
+      {/* ---------------- MODALS ---------------- */}
+      <LoginModal
+        open={loginOpen}
+        onClose={() => setLoginOpen(false)}
+        onOpenRegister={() => {
+          setLoginOpen(false);
+          setRegisterOpen(true);
+        }}
+      />
+
+      <RegisterModal
+        open={registerOpen}
+        onClose={() => setRegisterOpen(false)}
+        onOpenLogin={() => {
+          setRegisterOpen(false);
+          setLoginOpen(true);
+        }}
+      />
+    </>
   );
 }

@@ -1,7 +1,7 @@
 // anime/[id]/page.tsx
 import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
 import { getAnimeByIdAction } from "@/services/anime/anime.service";
-import AnimeDetailSection from "@/sections/AnimeDetailSection";
+import AnimeDetailSection from "@/sections/anime/detail/AnimeDetailSection";
 
 export default async function AnimeDetailPage({
   params,
