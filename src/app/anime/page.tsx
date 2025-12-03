@@ -2,8 +2,9 @@
 
 import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
 import { getAnimeListAction } from "@/services/anime/anime.service";
-import AnimeListSection from "@/sections/AnimeListSection";
+import AnimeListSection from "@/sections/anime/list/AnimeListSection";
 import type { AnimeQueryParams } from "@/models/anime.model";
+import AnimeBannerSection from "@/sections/anime/list/AnimeBannerSection";
 
 interface AnimePageProps {
   searchParams: {
@@ -42,6 +43,7 @@ export default async function AnimePage({ searchParams }: AnimePageProps) {
 
     return (
         <HydrationBoundary state={dehydratedState}>
+            <AnimeBannerSection />
             <AnimeListSection initialQuery={initialQuery} />
         </HydrationBoundary>
     );

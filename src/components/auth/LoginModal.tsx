@@ -4,6 +4,19 @@ import { useState, useTransition } from "react";
 import { loginAction } from "@/services/auth/auth.service";
 import { useRouter } from "next/navigation";
 
+// SHADCN COMPONENTS
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertTitle } from "@/components/ui/alert";
+
 interface LoginModalProps {
   open: boolean;
   onClose: () => void;
@@ -20,8 +33,6 @@ export default function LoginModal({
   const [error, setError] = useState("");
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
-
-  if (!open) return null;
 
   const validateForm = () => {
     if (!email.trim() || !password.trim()) {
@@ -58,74 +69,78 @@ export default function LoginModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn">
-      <div className="relative bg-white/90 backdrop-blur-xl rounded-2xl p-8 w-full max-w-sm shadow-xl border border-blue-200 animate-scaleIn">
-        <button
-          className="absolute right-4 top-4 text-gray-500 hover:text-gray-700"
-          onClick={onClose}
-        >
-          ✕
-        </button>
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="bg-black/90 border border-blue-500/20 text-white backdrop-blur-xl shadow-2xl max-w-sm rounded-2xl">
 
-        <h1 className="text-3xl font-bold text-center mb-6 text-blue-600">
-          Login
-        </h1>
+        <DialogHeader className="text-center mb-2">
+          <DialogTitle className="text-3xl font-bold text-white tracking-wide">
+            Masuk
+          </DialogTitle>
+          <DialogDescription className="text-gray-400 text-sm">
+            Akses akun OHAYŌ dan mulai jelajahi anime favoritmu.
+          </DialogDescription>
+        </DialogHeader>
 
+        {/* ERROR ALERT */}
         {error && (
-          <div className="mb-4 text-red-600 bg-red-100 border border-red-300 rounded p-2 text-sm">
-            {error}
-          </div>
+          <Alert variant="destructive" className="bg-red-500/20 border-red-500/40 text-red-300">
+            <AlertTitle>{error}</AlertTitle>
+          </Alert>
         )}
 
-        <form onSubmit={handleLogin} className="flex flex-col gap-4">
-          <div>
-            <label className="text-sm text-gray-700 font-medium">Email</label>
-            <input
+        {/* FORM */}
+        <form onSubmit={handleLogin} className="flex flex-col gap-5 mt-4">
+
+          {/* EMAIL */}
+          <div className="flex flex-col gap-1">
+            <Label className="text-gray-300 text-sm">Email</Label>
+            <Input
               type="email"
-              className="border mt-1 w-full p-2 rounded"
               placeholder="email@example.com"
               value={email}
               disabled={isPending}
               onChange={(e) => setEmail(e.target.value)}
+              className="bg-black/40 border-blue-500/30 text-white placeholder:text-gray-400 focus-visible:ring-blue-500"
             />
           </div>
 
-          <div>
-            <label className="text-sm text-gray-700 font-medium">
-              Password
-            </label>
-            <input
+          {/* PASSWORD */}
+          <div className="flex flex-col gap-1">
+            <Label className="text-gray-300 text-sm">Password</Label>
+            <Input
               type="password"
-              className="border mt-1 w-full p-2 rounded"
               placeholder="••••••••"
               value={password}
               disabled={isPending}
               onChange={(e) => setPassword(e.target.value)}
+              className="bg-black/40 border-blue-500/30 text-white placeholder:text-gray-400 focus-visible:ring-blue-500"
             />
           </div>
 
-          <button
+          {/* SUBMIT BUTTON */}
+          <Button
             type="submit"
             disabled={isPending}
-            className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-lg font-semibold shadow-md active:scale-95 disabled:opacity-50"
+            className="w-full py-5 text-base font-semibold rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-95"
           >
             {isPending ? "Memproses..." : "Masuk"}
-          </button>
+          </Button>
         </form>
 
-        <p className="text-center mt-4 text-sm text-gray-600">
+        {/* REGISTER LINK */}
+        <p className="text-center mt-4 text-sm text-gray-400">
           Belum punya akun?{" "}
           <button
             onClick={() => {
               onClose();
               onOpenRegister();
             }}
-            className="text-blue-600 font-medium hover:underline"
+            className="text-blue-400 font-medium hover:underline"
           >
             Daftar
           </button>
         </p>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

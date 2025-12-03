@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/header/Header";
-import Footer from "@/components/Footer";
+import Footer from "@/components/footer/Footer";
 import { TanstackProvider } from "@/components/TanstackProvider";
 
 const geistSans = Geist({
@@ -32,7 +32,7 @@ export default function RootLayout({
       >
         <TanstackProvider>
           <Header />
-          <main className="w-full mx-auto px-4 sm:px-6 md:px-8 py-10">
+          <main>
             {children}
           </main>
           <Footer />

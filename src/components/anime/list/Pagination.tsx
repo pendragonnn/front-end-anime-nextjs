@@ -1,5 +1,7 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+
 interface Props {
   page: number;
   totalPages: number;
@@ -18,26 +20,34 @@ export default function Pagination({
   onNext,
 }: Props) {
   return (
-    <div className="flex justify-center items-center gap-3 mt-8">
-      <button
+    <div className="flex items-center justify-center gap-4 mt-10">
+
+      <Button
+        variant="outline"
         disabled={page <= 1 || loading}
         onClick={onPrev}
-        className="px-3 py-1 rounded border bg-white disabled:opacity-50"
+        className="
+          rounded-xl border-white/20 text-white hover:bg-white/10
+          disabled:opacity-40 active:scale-95
+        "
       >
         Prev
-      </button>
+      </Button>
 
-      <span className="text-sm">
-        Page {page} / {totalPages}
+      <span className="text-gray-300 text-sm">
+        Page <span className="font-semibold">{page}</span> / {totalPages}
       </span>
 
-      <button
+      <Button
         disabled={page >= totalPages || loading || !hasNext}
         onClick={onNext}
-        className="px-3 py-1 rounded border bg-white disabled:opacity-50"
+        className="
+          bg-blue-600 hover:bg-blue-700 text-white rounded-xl
+          disabled:opacity-40 active:scale-95
+        "
       >
         Next
-      </button>
+      </Button>
     </div>
   );
 }
