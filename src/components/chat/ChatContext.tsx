@@ -285,9 +285,9 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     formData.append("file", file);
 
     const res = await uploadImageAction(formData);
-    if (res.success) return res.data.url;
+    if (res.success && res.data) return res.data.url;
 
-    setError(res.error);
+    setError(res.error || "Gagal mengupload gambar");
     return null;
   }, []);
 

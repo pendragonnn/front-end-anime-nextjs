@@ -3,8 +3,10 @@
 import Image from "next/image";
 import Autoplay from "embla-carousel-autoplay";
 import useEmblaCarousel from "embla-carousel-react";
-import { PlayCircle, Info } from "lucide-react";
+import { Info } from "lucide-react";
 import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
+import { getAnimeListAction } from "@/services/anime/anime.service";
 
 export default function AnimeBannerSection() {
   const [emblaRef] = useEmblaCarousel(
@@ -12,35 +14,37 @@ export default function AnimeBannerSection() {
     [Autoplay({ delay: 3500 })]
   );
 
-  const banners = [
-    {
-      id: 1,
-      title: "Demon Slayer: Kimetsu no Yaiba",
-      img: "https://i.pinimg.com/1200x/87/c8/7e/87c87ebcf2c265d50de170ca202cdb72.jpg",
-      rating: "8.7",
-      genres: ["Action", "Adventure", "Fantasy"],
-      synopsis:
-        "Tanjiro berjuang melawan iblis sembari mencari cara mengembalikan adiknya menjadi manusia.",
-    },
-    {
-      id: 2,
-      title: "Attack on Titan",
-      img: "https://i.pinimg.com/1200x/13/a1/01/13a10172127bbf9da50b8ce6db35eeaa.jpg",
-      rating: "9.1",
-      genres: ["Action", "Drama", "Mystery"],
-      synopsis:
-        "Manusia bertahan hidup di balik dinding raksasa untuk menghindari Titan yang mengancam dunia.",
-    },
-    {
-      id: 3,
-      title: "Jujutsu Kaisen",
-      img: "https://i.pinimg.com/1200x/a2/e6/41/a2e641e94394781e5eda1a54a7307300.jpg",
-      rating: "8.6",
-      genres: ["Supernatural", "Action", "Dark Fantasy"],
-      synopsis:
-        "Yuji Itadori terjun ke dunia kutukan setelah memakan jari Sukuna, raja kutukan.",
-    },
-  ];
+  // Fetch top 3 anime from database
+  const { data, isLoading } = useQuery({
+    queryKey: ["anime-banner"],
+    queryFn: () => getAnimeListAction({
+      page: 1,
+      limit: 3,
+      sortBy: "createdAt",
+      sort: "desc"
+    }),
+  });
+
+  const banners = data?.items?.map(anime => ({
+    id: anime.id,
+    title: anime.title,
+    cover: anime.cover || "https://i.pinimg.com/1200x/46/54/ad/4654ad188d74ebda707b3bb62659d456.jpg",
+    genres: anime.genres,
+    synopsis: anime.synopsis,
+  })) || [];
+
+  // Show loading state
+  if (isLoading || banners.length === 0) {
+    return (
+      <section className="w-full py-10 bg-black">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="h-[300px] md:h-[420px] lg:h-[480px] rounded-xl bg-zinc-900 animate-pulse flex items-center justify-center">
+            <p className="text-gray-500">Loading anime...</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="w-full py-10 bg-black">
@@ -60,7 +64,7 @@ export default function AnimeBannerSection() {
               >
                 {/* BACKGROUND IMAGE */}
                 <Image
-                  src={item.img}
+                  src={item.cover}
                   alt={item.title}
                   fill
                   priority
@@ -98,9 +102,6 @@ export default function AnimeBannerSection() {
                   </h3>
 
                   <div className="flex items-center gap-4 text-gray-300 mt-2">
-                    <span className="text-blue-400 font-semibold text-lg">
-                      ★ {item.rating}
-                    </span>
                     <p className="text-sm">{item.genres.join(" • ")}</p>
                   </div>
 
@@ -110,24 +111,12 @@ export default function AnimeBannerSection() {
 
                   <div className="flex gap-4 mt-5">
                     <Link
-                      href={`/anime/${item.id}/watch`}
+                      href={`/anime/${item.id}`}
                       className="
                         flex items-center gap-2 
                         bg-blue-600 hover:bg-blue-700 
                         text-white px-5 py-3 rounded-xl text-sm font-semibold 
                         transition active:scale-95
-                      "
-                    >
-                      <PlayCircle size={20} /> Watch Now
-                    </Link>
-
-                    <Link
-                      href={`/anime/${item.id}`}
-                      className="
-                        flex items-center gap-2 
-                        px-5 py-3 rounded-xl text-sm font-semibold 
-                        border border-white/30 hover:bg-white/10 
-                        transition active:scale-95 backdrop-blur-sm text-white
                       "
                     >
                       <Info size={18} /> More Info

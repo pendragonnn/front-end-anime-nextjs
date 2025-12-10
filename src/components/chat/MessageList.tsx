@@ -53,10 +53,9 @@ export default function MessageList() {
 
           return (
             <div
-              key={message.id}
-              className={`flex w-full mb-4 ${
-                isOwn ? "justify-end" : "justify-start"
-              }`}
+              key={`${message.id}-${idx}`}
+              className={`flex w-full mb-4 ${isOwn ? "justify-end" : "justify-start"
+                }`}
             >
               {/* Avatar Lawan Bicara */}
               {!isOwn && (
@@ -80,11 +79,10 @@ export default function MessageList() {
 
               {/* Bubble Chat */}
               <div
-                className={`relative max-w-[70%] px-4 py-2 rounded-2xl shadow-sm transition-all ${
-                  isOwn
+                className={`relative max-w-[70%] px-4 py-2 rounded-2xl shadow-sm transition-all ${isOwn
                     ? "bg-blue-500 text-white rounded-br-sm"
                     : "bg-[#1b1f26] text-gray-200 rounded-bl-sm border border-white/10"
-                }`}
+                  }`}
               >
                 {/* Image message */}
                 {message.type === "IMAGE" ? (
@@ -114,9 +112,8 @@ export default function MessageList() {
 
                   {!message.optimistic && !message.failed && (
                     <span
-                      className={`text-xs ${
-                        isOwn ? "text-white/80" : "text-gray-400"
-                      }`}
+                      className={`text-xs ${isOwn ? "text-white/80" : "text-gray-400"
+                        }`}
                     >
                       {format(new Date(message.createdAt), "HH:mm", {
                         locale: localeId,

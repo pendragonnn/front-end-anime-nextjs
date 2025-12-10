@@ -71,6 +71,7 @@ export async function getAnimeByIdAction(id: string) {
 export interface AnimePayload {
   title: string;
   synopsis: string;
+  cover?: string; // Optional cover image URL
   genres: string[];
 }
 
