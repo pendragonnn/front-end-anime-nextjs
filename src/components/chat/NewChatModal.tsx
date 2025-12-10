@@ -3,14 +3,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useChat } from "./ChatContext";
 import { User } from "@/models/chat.model";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-// Asumsikan Anda memiliki komponen Modal atau Dialog
-// import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"; 
-// Ganti dengan komponen UI Anda yang sesuai.
 
 export default function NewChatModal({
   isOpen,
@@ -24,8 +20,14 @@ export default function NewChatModal({
   const [availableUsers, setAvailableUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isCreating, setIsCreating] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  // Ambil daftar pengguna saat modal dibuka atau search term berubah
+  // Ensure component is mounted (for SSR)
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Fetch users when modal opens or search term changes
   useEffect(() => {
     if (isOpen) {
       const loadUsers = async () => {
@@ -38,94 +40,185 @@ export default function NewChatModal({
     }
   }, [isOpen, searchTerm, fetchUsers, currentUser?.id, clearError]);
 
+  // Reset search when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setSearchTerm("");
+    }
+  }, [isOpen]);
+
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
+
   const handleCreateRoom = async (targetUserId: string) => {
     if (isCreating || !currentUser) return;
 
     setIsCreating(true);
-    // Payload untuk chat 1-vs-1: [ID pengguna saat ini, ID pengguna target]
     const userIds = [currentUser.id, targetUserId];
 
-    // Panggil aksi dari ChatContext
-    const newRoomId = await createRoomChat(userIds); 
+    const newRoomId = await createRoomChat(userIds);
 
     if (newRoomId) {
-      // 1. Arahkan pengguna ke room chat yang baru dibuat
       router.push(`/chat/${newRoomId}`);
-
-      // 2. Tutup modal
       onClose();
     } else {
-      // Error ditangani di ChatContext, cukup log atau tampilkan notifikasi jika perlu
-      console.error("Gagal membuat room chat baru:", error);
+      console.error("Failed to create room chat:", error);
     }
     setIsCreating(false);
   };
 
-  if (!isOpen) return null; // Ganti dengan komponen Modal/Dialog UI Anda
+  if (!isOpen || !mounted) return null;
 
-  // *Ganti div ini dengan komponen Modal/Dialog UI Anda*
-  return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg w-full max-w-md p-6">
-        <h2 className="text-xl font-bold mb-4">Buat Chat Baru 💬</h2>
-        <Input
-          type="text"
-          placeholder="Cari pengguna..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="mb-4"
-          disabled={loading || isCreating}
-        />
-        {error && <p className="text-red-500 mb-4">{error}</p>}
-        
-        <div className="max-h-80 overflow-y-auto space-y-2">
-          {loading && availableUsers.length === 0 ? (
-            <p className="text-gray-500">Memuat pengguna...</p>
-          ) : availableUsers.length === 0 && !searchTerm ? (
-            <p className="text-gray-500">Tidak ada pengguna yang tersedia.</p>
-          ) : availableUsers.length === 0 && searchTerm ? (
-            <p className="text-gray-500">Tidak ada hasil untuk "{searchTerm}".</p>
-          ) : (
-            availableUsers.map((user) => (
-              <div
-                key={user.id}
-                className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition"
+  const modalContent = (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+        onClick={onClose}
+      />
+
+      {/* Modal */}
+      <div className="relative w-full max-w-md bg-[#0d0f12] rounded-2xl border border-white/10 shadow-2xl shadow-black/50 max-h-[90vh] flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-gradient-to-r from-blue-600/10 to-purple-600/10 flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="text-3xl">💬</div>
+            <h2 className="text-xl font-bold text-white">Buat Chat Baru</h2>
+          </div>
+          <button
+            onClick={onClose}
+            disabled={isCreating}
+            className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition text-white disabled:opacity-50"
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* Search Input */}
+        <div className="px-6 pt-5 pb-3 flex-shrink-0">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Cari pengguna..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              disabled={loading || isCreating}
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition disabled:opacity-50"
+            />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white transition"
               >
-                <div className="flex items-center gap-3">
-                  {user.avatar ? (
-                    <img
-                      src={user.avatar}
-                      alt={user.name}
-                      className="w-10 h-10 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold">
-                      {user.name.charAt(0).toUpperCase()}
-                    </div>
-                  )}
-                  <div>
-                    <p className="font-semibold">{user.name}</p>
-                    <p className="text-sm text-gray-500">{user.email}</p>
-                  </div>
-                </div>
-                <Button
-                  onClick={() => handleCreateRoom(user.id)}
-                  disabled={isCreating}
-                  size="sm"
+                ✕
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="mx-6 mb-3 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm flex-shrink-0">
+            {error}
+          </div>
+        )}
+
+        {/* User List - Scrollable */}
+        <div className="px-6 pb-5 overflow-y-auto flex-1">
+          {loading && availableUsers.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-zinc-500">
+              <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mb-3" />
+              <p>Memuat pengguna...</p>
+            </div>
+          ) : availableUsers.length === 0 && !searchTerm ? (
+            <div className="flex flex-col items-center justify-center py-12 text-zinc-500">
+              <div className="text-4xl mb-3">👥</div>
+              <p>Tidak ada pengguna yang tersedia.</p>
+            </div>
+          ) : availableUsers.length === 0 && searchTerm ? (
+            <div className="flex flex-col items-center justify-center py-12 text-zinc-500">
+              <div className="text-4xl mb-3">🔍</div>
+              <p>Tidak ada hasil untuk "{searchTerm}".</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {availableUsers.map((user) => (
+                <div
+                  key={user.id}
+                  className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 transition group"
                 >
-                  {isCreating ? "Membuat..." : "Chat"}
-                </Button>
-              </div>
-            ))
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    {/* Avatar */}
+                    {user.avatar ? (
+                      <img
+                        src={user.avatar}
+                        alt={user.name}
+                        className="w-11 h-11 rounded-full object-cover border border-white/10 shadow-md flex-shrink-0"
+                      />
+                    ) : (
+                      <div className="w-11 h-11 rounded-full bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center text-white font-semibold shadow-md flex-shrink-0">
+                        {user.name.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+
+                    {/* User Info */}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-white truncate">
+                        {user.name}
+                      </p>
+                      <p className="text-sm text-zinc-400 truncate">
+                        {user.email}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Chat Button */}
+                  <button
+                    onClick={() => handleCreateRoom(user.id)}
+                    disabled={isCreating}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap flex-shrink-0"
+                  >
+                    {isCreating ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span>Membuat...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>💬</span>
+                        <span>Chat</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              ))}
+            </div>
           )}
         </div>
-        
-        <div className="flex justify-end mt-4">
-          <Button variant="outline" onClick={onClose} disabled={isCreating}>
+
+        {/* Footer */}
+        <div className="flex justify-end gap-3 px-6 py-4 border-t border-white/10 bg-[#111315] flex-shrink-0">
+          <button
+            onClick={onClose}
+            disabled={isCreating}
+            className="px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white font-medium rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             Tutup
-          </Button>
+          </button>
         </div>
       </div>
     </div>
   );
+
+  // Render modal using Portal to document.body
+  return createPortal(modalContent, document.body);
 }

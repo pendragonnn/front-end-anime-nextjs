@@ -43,6 +43,8 @@ interface ChatContextType {
   uploadImage: (file: File) => Promise<string | null>;
   fetchUsers: (search?: string) => Promise<User[]>;
   clearError: () => void;
+  hasUnread: (roomId: string, lastMessageDate?: string) => boolean;
+  markAsRead: (roomId: string) => void;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -118,11 +120,11 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     setCurrentRoomChat((prev) =>
       prev
         ? {
-            ...prev,
-            messages: prev.messages.map((m) =>
-              m.id === tempId ? { ...real, optimistic: false } : m
-            ),
-          }
+          ...prev,
+          messages: prev.messages.map((m) =>
+            m.id === tempId ? { ...real, optimistic: false } : m
+          ),
+        }
         : prev
     );
   }, []);
@@ -201,8 +203,13 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     setLoading(true);
     const res = await getRoomChatDetailAction(roomChatId);
 
-    if (res.success) setCurrentRoomChat(res.data);
-    else setError(res.error);
+    if (res.success) {
+      setCurrentRoomChat(res.data);
+      // Mark as read when opening room
+      markAsRead(roomChatId);
+    } else {
+      setError(res.error);
+    }
 
     setLoading(false);
   }, []);
@@ -228,11 +235,11 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         setCurrentRoomChat((prev) =>
           prev
             ? {
-                ...prev,
-                messages: prev.messages.map((m) =>
-                  m.id === tempId ? { ...m, failed: true } : m
-                ),
-              }
+              ...prev,
+              messages: prev.messages.map((m) =>
+                m.id === tempId ? { ...m, failed: true } : m
+              ),
+            }
             : prev
         );
       }
@@ -284,6 +291,22 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     return null;
   }, []);
 
+  // ─────────────────────────────────────────────
+  // UNREAD TRACKING
+  // ─────────────────────────────────────────────
+  const hasUnread = useCallback((roomId: string, lastMessageDate?: string) => {
+    if (!lastMessageDate) return false;
+
+    const lastViewed = localStorage.getItem(`chat_last_viewed_${roomId}`);
+    if (!lastViewed) return true; // Never viewed = unread
+
+    return new Date(lastMessageDate) > new Date(lastViewed);
+  }, []);
+
+  const markAsRead = useCallback((roomId: string) => {
+    localStorage.setItem(`chat_last_viewed_${roomId}`, new Date().toISOString());
+  }, []);
+
   const clearError = () => setError(null);
 
   return (
@@ -301,6 +324,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         uploadImage,
         fetchUsers,
         clearError,
+        hasUnread,
+        markAsRead,
       }}
     >
       {children}

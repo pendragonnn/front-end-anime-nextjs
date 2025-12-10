@@ -1,16 +1,16 @@
 "use client";
 
 import { useChat } from "./ChatContext";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { formatDistanceToNow } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import NewChatModal from "./NewChatModal";
 import clsx from "clsx";
 
-export default function RoomList() {
+export default function RoomList({ hideHeader = false }: { hideHeader?: boolean }) {
   const router = useRouter();
-  const { roomChats, currentRoomChat, currentUser, loading, fetchRoomChats } =
+  const { roomChats, currentRoomChat, currentUser, loading, fetchRoomChats, hasUnread } =
     useChat();
 
   const [open, setOpen] = useState(false);
@@ -23,21 +23,32 @@ export default function RoomList() {
   const getOtherUser = (users: any[]) =>
     users.find((u) => u.id !== currentUser?.id) ?? users[0];
 
+  // Sort rooms by newest message
+  const sortedRooms = useMemo(() => {
+    return [...roomChats].sort((a, b) => {
+      const dateA = a.lastMessage?.createdAt ? new Date(a.lastMessage.createdAt).getTime() : 0;
+      const dateB = b.lastMessage?.createdAt ? new Date(b.lastMessage.createdAt).getTime() : 0;
+      return dateB - dateA; // Newest first
+    });
+  }, [roomChats]);
+
   return (
     <div className="flex flex-col h-full bg-[#0d0f12] border-r border-white/5">
       {/* HEADER */}
-      <div className="flex items-center justify-between px-4 py-4 border-b border-white/5 bg-[#111315] backdrop-blur-sm">
-        <h2 className="text-lg font-semibold text-white tracking-wide">
-          Percakapan
-        </h2>
+      {!hideHeader && (
+        <div className="flex items-center justify-between px-4 py-4 border-b border-white/5 bg-[#111315] backdrop-blur-sm">
+          <h2 className="text-lg font-semibold text-white tracking-wide">
+            Percakapan
+          </h2>
 
-        <button
-          onClick={() => setOpen(true)}
-          className="text-2xl text-blue-400 hover:text-blue-300 transition transform hover:scale-110"
-        >
-          ＋
-        </button>
-      </div>
+          <button
+            onClick={() => setOpen(true)}
+            className="text-2xl text-blue-400 hover:text-blue-300 transition transform hover:scale-110"
+          >
+            ＋
+          </button>
+        </div>
+      )}
 
       {/* LIST */}
       <div className="flex-1 overflow-y-auto">
@@ -57,9 +68,10 @@ export default function RoomList() {
         )}
 
         {/* ROOM ITEMS */}
-        {roomChats.map((room) => {
+        {sortedRooms.map((room) => {
           const other = getOtherUser(room.users);
           const active = currentRoomChat?.id === room.id;
+          const isUnread = hasUnread(room.id, room.lastMessage?.createdAt);
 
           return (
             <div
@@ -70,11 +82,11 @@ export default function RoomList() {
                 "hover:bg-white/5 hover:backdrop-blur-sm",
 
                 active &&
-                  "bg-blue-600/20 border-l-4 border-blue-500 shadow-[inset_0_0_12px_rgba(59,130,246,0.4)]"
+                "bg-blue-600/20 border-l-4 border-blue-500 shadow-[inset_0_0_12px_rgba(59,130,246,0.4)]"
               )}
             >
               {/* AVATAR */}
-              <div>
+              <div className="relative">
                 {other.avatar ? (
                   <img
                     src={other.avatar}
@@ -85,17 +97,28 @@ export default function RoomList() {
                     {other.name[0]?.toUpperCase()}
                   </div>
                 )}
+
+                {/* Unread indicator badge */}
+                {isUnread && !active && (
+                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full border-2 border-[#0d0f12]" />
+                )}
               </div>
 
               {/* CONTENT */}
               <div className="flex-1 min-w-0">
                 <div className="flex justify-between items-center mb-1">
-                  <p className="text-white font-medium truncate text-[15px]">
+                  <p className={clsx(
+                    "font-medium truncate text-[15px]",
+                    isUnread ? "text-white font-bold" : "text-white"
+                  )}>
                     {other.name}
                   </p>
 
                   {room.lastMessage && (
-                    <span className="text-[11px] text-zinc-500 whitespace-nowrap ml-2">
+                    <span className={clsx(
+                      "text-[11px] whitespace-nowrap ml-2",
+                      isUnread ? "text-blue-400 font-bold" : "text-zinc-500"
+                    )}>
                       {formatDistanceToNow(new Date(room.lastMessage.createdAt), {
                         addSuffix: true,
                         locale: localeId,
@@ -104,7 +127,10 @@ export default function RoomList() {
                   )}
                 </div>
 
-                <p className="text-sm text-zinc-400 truncate">
+                <p className={clsx(
+                  "text-sm truncate",
+                  isUnread ? "text-white font-semibold" : "text-zinc-400"
+                )}>
                   {room.lastMessage
                     ? room.lastMessage.type === "IMAGE"
                       ? "📷 Gambar"
