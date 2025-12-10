@@ -15,5 +15,5 @@ export function proxy(request: NextRequest) {
 
 // Proteksi semua route /anime
 export const config = {
-  matcher: ["/anime/:path*"],
+  matcher: ["/anime/:path*", "/chat/:path*"],
 };
