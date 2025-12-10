@@ -30,7 +30,7 @@ export default function AnimeCard({ anime, onEdit, onDelete }: AnimeCardProps) {
       {/* COVER */}
       <Link href={`/anime/${anime.id}`} className="relative h-48 w-full">
         <Image
-          src={"https://i.pinimg.com/1200x/46/54/ad/4654ad188d74ebda707b3bb62659d456.jpg"}
+          src={anime.cover || "https://i.pinimg.com/1200x/46/54/ad/4654ad188d74ebda707b3bb62659d456.jpg"}
           alt={anime.title}
           fill
           className="object-cover brightness-[0.85]"

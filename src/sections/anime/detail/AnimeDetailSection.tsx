@@ -41,7 +41,7 @@ export default function AnimeDetailSection({ animeId }: { animeId: string }) {
       {/* ==================== BACKGROUND IMAGE ==================== */}
       <div className="relative w-full h-[60vh] md:h-[70vh] overflow-hidden">
         <Image
-          src="https://i.pinimg.com/1200x/a9/b6/7c/a9b67cf912f18358c7b64d9a58103674.jpg"
+          src={anime.cover || "https://i.pinimg.com/1200x/a9/b6/7c/a9b67cf912f18358c7b64d9a58103674.jpg"}
           alt={anime.title}
           fill
           className="object-cover brightness-[0.35]"
